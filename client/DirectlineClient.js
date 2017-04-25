@@ -1,5 +1,6 @@
 const fetch = require('node-fetch')
 const WebSocket = require('ws')
+const InMemory = require('./repositories/InMemory')
 
 const {
   BOT_DIRECTLINE_SECRET: SECRET,
@@ -9,6 +10,7 @@ const {
 
 const directLineBase = 'https://directline.botframework.com'
 const conversations = new Map()
+const repository = new InMemory()
 
 function postToApi (customerThreadId, text) {
   return fetch(POST_ENDPOINT, {
@@ -24,7 +26,36 @@ function postToApi (customerThreadId, text) {
   })
 }
 
-function isConversationOpen (threadId) {
+function startConversation () {
+  return fetch(directLineBase + `/v3/directline/conversations`, {
+    method: 'post',
+    headers: {
+      authorization: `bearer ${SECRET}`
+    }
+  })
+    .then(res => res.json())
+    .then(data => {
+      return data.streamUrl
+    })
+    .then(startConnection)
+}
+
+function startConnection (url) {
+  const ws = new WebSocket(url)
+  ws.on('message', (messageStr) => {
+    const message = messageStr !== '' ? JSON.parse(messageStr) : {}
+    if (message.activities) {
+      const activity = message.activities[0]
+      if (activity.from.name) {
+        const threadId = getThreadIdFromConversationId(activity.conversation.id)
+        const msg = activity.text
+        postToApi(threadId, msg)
+      }
+    }
+  })
+}
+
+function isConnectionOpen (threadId) {
   return !!conversations.get(threadId)
 }
 
@@ -62,26 +93,30 @@ const client = (req, response) => {
   const msg = initialBody.messageBody
   const fromCustomer = initialBody.fromCustomer
 
+  var conversationIdRequest = repository.get(threadId)
+
   if (!fromCustomer) return
-
-  // Query DB with key customerThreadID
-
-  // key: customerThreadID
-  // value: { conversationID: xxx,
-  //          muteBot:(boolean),
-  //          isConnected: (boolean) }
-
-  // if (response.muteBot === true) { return }
+  if (conversationIdRequest.muteBot === true) { return }
 
   // TODO close ws connection
 
-  if (isConversationOpen(threadId)) {
-    sendMessage(threadId, msg)
-      .then(() => {
-        response.json({'message': 'message successfully sent'})
-      })
-    return
-  }
+  var x = repository.exists(threadId) // x is a promise
+  x.then((convoExists) => {
+    if (convoExists) {
+      return
+    }
+    return startConversation()
+  }).then(() => {
+    sendMessage()
+  })
+
+  // if (isConnectionOpen(threadId)) {
+  //   sendMessage(threadId, msg)
+  //     .then(() => {
+  //       response.json({'message': 'message successfully sent'})
+  //     })
+  //   return
+  // }
 
   fetch(directLineBase + `/v3/directline/conversations`, {
     method: 'post',
