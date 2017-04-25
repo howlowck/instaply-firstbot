@@ -102,7 +102,7 @@ const client = (req, response) => {
       // TODO add ws object to the conversations Map
       // TODO check ws object has a isOpen
 
-      ws.on('disconnect', ())
+      // ws.on('disconnect', ())
     })
     .then(() => {
       return sendMessage(threadId, msg)
