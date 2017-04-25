@@ -61,12 +61,19 @@ const client = (req, response) => {
   const threadId = initialBody.customerThreadId
   const msg = initialBody.messageBody
   const fromCustomer = initialBody.fromCustomer
-  const muteBot = initialBody.muteBot
 
   if (!fromCustomer) return
-  if (muteBot) return
-  //TODO add logic to end conversation (on muteBot)
-  //TODO close ws connection
+
+  // Query DB with key customerThreadID
+
+  // key: customerThreadID
+  // value: { conversationID: xxx,
+  //          muteBot:(boolean),
+  //          isConnected: (boolean) }
+
+  // if (response.muteBot === true) { return }
+
+  // TODO close ws connection
 
   if (isConversationOpen(threadId)) {
     sendMessage(threadId, msg)
@@ -103,6 +110,7 @@ const client = (req, response) => {
       // TODO check ws object has a isOpen
 
       // ws.on('disconnect', ())
+      // set isConnected === false
     })
     .then(() => {
       return sendMessage(threadId, msg)
@@ -110,8 +118,6 @@ const client = (req, response) => {
     .catch((err) => {
       console.log(err.message)
     })
-
-
 }
 
 module.exports = client
