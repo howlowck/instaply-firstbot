@@ -21,6 +21,9 @@ var connector = new builder.ChatConnector({
   appPassword: process.env.BOT_PASSWORD
 })
 var bot = new builder.UniversalBot(connector)
+server.get('/', function (req, res) {
+  res.json({'message': 'hello!'})
+})
 server.post('/api/messages', connector.listen())
 server.post('/bot-receiver', DirectlineClient)
 
