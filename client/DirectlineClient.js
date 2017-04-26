@@ -65,9 +65,11 @@ function startConnection ({url, threadId}) {
       repository.updateProperty(threadId, 'watermark', message.watermark)
       const activity = message.activities[0]
       if (activity.from.name) {
-        const threadId = getThreadIdFromConversationId(activity.conversation.id)
-        const msg = activity.text
-        postToApi(threadId, msg)
+        conversationMapping.get(activity.conversation.id)
+          .then((threadId) => {
+            const msg = activity.text
+            postToApi(threadId, msg)
+          })
       }
     }
   })
@@ -88,13 +90,7 @@ function reconnectWebSocket () {
 }
 
 function getThreadIdFromConversationId (convoId) {
-  let result = null
-  conversations.forEach((convo, thread) => {
-    if (convo === convoId) {
-      result = thread
-    }
-  })
-  return result
+
 }
 
 function sendMessageToBotConnector (threadId, message) {
