@@ -59,7 +59,7 @@ function startConnection ({url, threadId}) {
     repository.updateProperty(threadId, 'isConnected', true)
   })
   ws.on('message', (messageStr) => {
-    console.log('go message from websocket', messageStr)
+    console.log('got message from websocket', messageStr)
     const message = messageStr !== '' ? JSON.parse(messageStr) : {}
     if (message.activities) {
       // update conversation watermark
@@ -96,7 +96,9 @@ function sendMessageToBotConnector (threadId, message) {
     .then((convoObject) => {
       return convoObject.conversationID
     }).then((convoId) => {
-      return fetch(directLineBase + `/v3/directline/conversations/${convoId}/activities`, {
+      const endpoint = directLineBase + `/v3/directline/conversations/${convoId}/activities`
+      console.log('send message to bot connector endpoint', endpoint)
+      return fetch(endpoint, {
         method: 'post',
         headers: {
           'Content-Type': 'application/json',
