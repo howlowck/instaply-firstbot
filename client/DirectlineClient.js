@@ -55,9 +55,12 @@ function startConversation (threadId) {
 function startConnection ({url, threadId}) {
   const ws = new WebSocket(url)
   console.log('started Conection')
-  ws.on('open', () => {
-    console.log('WS CONNECTED')
-    repository.updateProperty(threadId, 'isConnected', true)
+  const resultPromise = new Promise((resolve) => {
+    ws.on('open', () => {
+      console.log('WS CONNECTED')
+      repository.updateProperty(threadId, 'isConnected', true)
+      resolve()
+    })
   })
   ws.on('message', (messageStr) => {
     console.log('got message from websocket', messageStr)
@@ -79,6 +82,8 @@ function startConnection ({url, threadId}) {
   ws.on('disconnect', () => {
     console.log('WS DISCONNECT')
   })
+
+  return resultPromise
 }
 
 function isConnectionOpen (threadId) {
@@ -129,24 +134,24 @@ const client = (req, response) => {
 
   // TODO close ws connection
 
-  var promise = repository.exists(threadId) // x is a promise
-  promise.then((convoExists) => {
-    if (convoExists) {
-      return isConnectionOpen(threadId)
-        .then((isConnected) => {
-          console.log('isConnected', isConnected)
-          if (!isConnected) {
-            reconnectWebSocket()
-          }
-        })
-    }
-    return startConversation(threadId)
-  }).then(() => {
-    console.log('beforeSendingMessage')
-    return sendMessageToBotConnector(threadId, msg)
-  }).catch((err) => {
-    console.log(err.message)
-  })
+  repository.exists(threadId)
+    .then((convoExists) => {
+      if (convoExists) {
+        return isConnectionOpen(threadId)
+          .then((isConnected) => {
+            console.log('isConnected', isConnected)
+            if (!isConnected) {
+              reconnectWebSocket()
+            }
+          })
+      }
+      return startConversation(threadId)
+    }).then(() => {
+      console.log('beforeSendingMessage')
+      return sendMessageToBotConnector(threadId, msg)
+    }).catch((err) => {
+      console.log(err.message)
+    })
 }
 
 module.exports = client
