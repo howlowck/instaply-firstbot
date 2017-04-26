@@ -1,5 +1,6 @@
 ﻿# From https://docs.microsoft.com/en-us/azure/container-service/container-service-kubernetes-walkthrough
-
+# This assumes you have the Azure CLI 2.0 installed on Linux (Bash on Windows works great!)
+# Instructions for Azure CLI install: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli#windows
 # Create the Resource Group
 RESOURCE_GROUP=RG-karkuber
 LOCATION=westus
@@ -49,6 +50,10 @@ kubectl create -f https://rawgit.com/kubernetes/dashboard/master/src/deploy/kube
 
 # Get the name of your nginx pods
 kubectl get pods
+
+# Create a Secret for accessing the private docker registry
+kubectl create secret docker-registry myregistrykey --docker-server=karcontainers-microsoft.azurecr.io --docker-username=karcontainers --docker-password=C/4/+jKi+++/+rqm//lsd/bCx0T/ECFC --docker-email=kevin@remde.net
+
 
 
 
