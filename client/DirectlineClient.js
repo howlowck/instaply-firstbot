@@ -35,6 +35,7 @@ function startConversation (threadId) {
   })
     .then(res => res.json())
     .then(data => {
+      console.log('get start conversation from directline client', data)
       return repository.set(threadId, {
         conversationId: data.conversationId,
         muteBot: false,
@@ -94,7 +95,7 @@ function reconnectWebSocket () {
 function sendMessageToBotConnector (threadId, message) {
   return repository.get(threadId)
     .then((convoObject) => {
-      return convoObject.conversationID
+      return convoObject.conversationId
     }).then((convoId) => {
       const endpoint = directLineBase + `/v3/directline/conversations/${convoId}/activities`
       console.log('send message to bot connector endpoint', endpoint)
