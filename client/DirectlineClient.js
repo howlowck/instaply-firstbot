@@ -9,8 +9,8 @@ const {
 } = process.env
 
 const directLineBase = 'https://directline.botframework.com'
-const conversations = new Map()
 const repository = new InMemory()
+const conversationMapping = new InMemory() // {conversationId => threadId}
 
 function postToApi (customerThreadId, text) {
   return fetch(POST_ENDPOINT, {
@@ -35,12 +35,18 @@ function startConversation (threadId) {
   })
     .then(res => res.json())
     .then(data => {
-      repository.set(threadId, {
+      return repository.set(threadId, {
         conversationId: data.conversationId,
         muteBot: false,
         isConnected: false
+      }).then(() => {
+        return {url: data.streamUrl, convoId: data.conversationId, threadId}
       })
-      return {url: data.streamUrl, threadId}
+    }).then(({url, convoId, threadId}) => {
+      return conversationMapping.set(convoId, threadId)
+        .then(() => {
+          return {url, threadId}
+        })
     })
     .then(startConnection)
 }
