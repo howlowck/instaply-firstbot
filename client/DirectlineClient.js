@@ -92,21 +92,25 @@ function getThreadIdFromConversationId (convoId) {
 }
 
 function sendMessageToBotConnector (threadId, message) {
-  const convoId = conversations.get(threadId)
-  return fetch(directLineBase + `/v3/directline/conversations/${convoId}/activities`, {
-    method: 'post',
-    headers: {
-      'Content-Type': 'application/json',
-      'authorization': `bearer ${SECRET}`
-    },
-    body: JSON.stringify({
-      type: 'message',
-      from: {
-        id: threadId
-      },
-      text: message
+  return repository.get(threadId)
+    .then((convoObject) => {
+      return convoObject.conversationID
+    }).then((convoId) => {
+      return fetch(directLineBase + `/v3/directline/conversations/${convoId}/activities`, {
+        method: 'post',
+        headers: {
+          'Content-Type': 'application/json',
+          'authorization': `bearer ${SECRET}`
+        },
+        body: JSON.stringify({
+          type: 'message',
+          from: {
+            id: threadId
+          },
+          text: message
+        })
+      })
     })
-  })
 }
 
 const client = (req, response) => {
