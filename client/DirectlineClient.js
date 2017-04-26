@@ -59,6 +59,7 @@ function startConnection ({url, threadId}) {
     repository.updateProperty(threadId, 'isConnected', true)
   })
   ws.on('message', (messageStr) => {
+    console.log('go message from websocket', messageStr)
     const message = messageStr !== '' ? JSON.parse(messageStr) : {}
     if (message.activities) {
       // update conversation watermark
@@ -67,6 +68,7 @@ function startConnection ({url, threadId}) {
       if (activity.from.name) {
         conversationMapping.get(activity.conversation.id)
           .then((threadId) => {
+            console.log('POST API: ThreadId = ', threadId, 'convoId: ', activity.conversation.id)
             const msg = activity.text
             postToApi(threadId, msg)
           })
@@ -87,10 +89,6 @@ function isConnectionOpen (threadId) {
 
 function reconnectWebSocket () {
   // TODO
-}
-
-function getThreadIdFromConversationId (convoId) {
-
 }
 
 function sendMessageToBotConnector (threadId, message) {
