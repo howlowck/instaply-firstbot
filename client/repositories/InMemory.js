@@ -4,14 +4,21 @@ class InMemory {
   }
 
   get (key) { // return a Promise
-    const value = this.db.get(key)
-    return new Promise(function (resolve) {
-      resolve(value)
+    return new Promise((resolve) => {
+      const value = this.db.get(key)
+      setTimeout(() => {
+        resolve(value)
+      }, 0)
     })
   }
 
   set (key, value) { // returns a Promise
-    this.db.set(key, value)
+    return new Promise((resolve) => {
+      this.db.set(key, value)
+      setTimeout(() => {
+        resolve()
+      }, 0)
+    })
   }
 
   exists (key) { // returns a Promise
@@ -19,6 +26,14 @@ class InMemory {
         .then(function (value) {
           return (typeof value !== 'undefined')
         })
+  }
+
+  updateProperty (key, property, value) { // returns a Promise
+    return this.get(key)
+      .then((convoObject) => {
+        convoObject[property] = value
+        return this.set(key, convoObject)
+      })
   }
 }
 

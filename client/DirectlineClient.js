@@ -26,7 +26,7 @@ function postToApi (customerThreadId, text) {
   })
 }
 
-function startConversation () {
+function startConversation (threadId) {
   return fetch(directLineBase + `/v3/directline/conversations`, {
     method: 'post',
     headers: {
@@ -35,16 +35,28 @@ function startConversation () {
   })
     .then(res => res.json())
     .then(data => {
-      return data.streamUrl
+      repository.set(threadId, {
+        conversationId: data.conversationId,
+        muteBot: false,
+        isConnected: false
+      })
+      return {url: data.streamUrl, threadId}
     })
     .then(startConnection)
 }
 
-function startConnection (url) {
+function startConnection ({url, threadId}) {
   const ws = new WebSocket(url)
+  console.log('started Conection')
+  ws.on('open', () => {
+    console.log('WS CONNECTED')
+    repository.updateProperty(threadId, 'isConnected', true)
+  })
   ws.on('message', (messageStr) => {
     const message = messageStr !== '' ? JSON.parse(messageStr) : {}
     if (message.activities) {
+      // update conversation watermark
+      repository.updateProperty(threadId, 'watermark', message.watermark)
       const activity = message.activities[0]
       if (activity.from.name) {
         const threadId = getThreadIdFromConversationId(activity.conversation.id)
@@ -53,10 +65,20 @@ function startConnection (url) {
       }
     }
   })
+  ws.on('disconnect', () => {
+    console.log('WS DISCONNECT')
+  })
 }
 
 function isConnectionOpen (threadId) {
-  return !!conversations.get(threadId)
+  var connection = repository.get(threadId)
+  return connection.then((convoObject) => {
+    return convoObject.isConnected
+  })
+}
+
+function reconnectWebSocket () {
+  // TODO
 }
 
 function getThreadIdFromConversationId (convoId) {
@@ -69,7 +91,7 @@ function getThreadIdFromConversationId (convoId) {
   return result
 }
 
-function sendMessage (threadId, message) {
+function sendMessageToBotConnector (threadId, message) {
   const convoId = conversations.get(threadId)
   return fetch(directLineBase + `/v3/directline/conversations/${convoId}/activities`, {
     method: 'post',
@@ -100,59 +122,24 @@ const client = (req, response) => {
 
   // TODO close ws connection
 
-  var x = repository.exists(threadId) // x is a promise
-  x.then((convoExists) => {
+  var promise = repository.exists(threadId) // x is a promise
+  promise.then((convoExists) => {
     if (convoExists) {
-      return
-    }
-    return startConversation()
-  }).then(() => {
-    sendMessage()
-  })
-
-  // if (isConnectionOpen(threadId)) {
-  //   sendMessage(threadId, msg)
-  //     .then(() => {
-  //       response.json({'message': 'message successfully sent'})
-  //     })
-  //   return
-  // }
-
-  fetch(directLineBase + `/v3/directline/conversations`, {
-    method: 'post',
-    headers: {
-      authorization: `bearer ${SECRET}`
-    }
-  })
-    .then(res => res.json())
-    .then(data => {
-      console.log(data)
-      conversations.set(threadId, data.conversationId)
-      const ws = new WebSocket(data.streamUrl)
-      ws.on('message', (messageStr) => {
-        const message = messageStr !== '' ? JSON.parse(messageStr) : {}
-        if (message.activities) {
-          const activity = message.activities[0]
-          if (activity.from.name) {
-            const threadId = getThreadIdFromConversationId(activity.conversation.id)
-            const msg = activity.text
-            postToApi(threadId, msg)
+      return isConnectionOpen(threadId)
+        .then((isConnected) => {
+          console.log('isConnected', isConnected)
+          if (!isConnected) {
+            reconnectWebSocket()
           }
-        }
-      })
-      // TODO add logic to determine if a connection needs to be reestablished
-      // TODO add ws object to the conversations Map
-      // TODO check ws object has a isOpen
-
-      // ws.on('disconnect', ())
-      // set isConnected === false
-    })
-    .then(() => {
-      return sendMessage(threadId, msg)
-    })
-    .catch((err) => {
-      console.log(err.message)
-    })
+        })
+    }
+    return startConversation(threadId)
+  }).then(() => {
+    console.log('beforeSendingMessage')
+    return sendMessageToBotConnector(threadId, msg)
+  }).catch((err) => {
+    console.log(err.message)
+  })
 }
 
 module.exports = client
