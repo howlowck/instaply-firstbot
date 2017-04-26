@@ -42,4 +42,5 @@ module.exports = InMemory
 // key: customerThreadID
   // value: { conversationID: xxx,
   //          muteBot:(boolean),
-  //          isConnected: (boolean) }
+  //          isConnected: (boolean)
+  //          watermark: xxx }

@@ -88,8 +88,22 @@ function isConnectionOpen (threadId) {
   })
 }
 
-function reconnectWebSocket () {
-  // TODO
+function reconnectWebSocket (threadId) {
+  return repository.get(threadId)
+    .then(convoObject => {
+      const endpoint = directLineBase + `/v3/directline/conversations/${convoObject.conversationId}?watermark=${convoObject.watermark}`
+      return fetch(endpoint, {
+        method: 'post',
+        headers: {
+          authorization: `bearer ${SECRET}`
+        }
+      })
+    })
+    .then(res => res.json())
+    .then(result => {
+      return {url: result.url, threadId}
+    })
+    .then(startConnection)
 }
 
 function sendMessageToBotConnector (threadId, message) {
@@ -136,7 +150,7 @@ const client = (req, response) => {
         .then((isConnected) => {
           console.log('isConnected', isConnected)
           if (!isConnected) {
-            reconnectWebSocket()
+            return reconnectWebSocket(threadId)
           }
         })
     }
