@@ -32,5 +32,6 @@ server.post('/bot-receiver', DirectlineClient)
 // =========================================================
 
 bot.dialog('/', function (session) {
+  console.log('in bot dialog')
   session.send('Hello World')
 })
