@@ -1,4 +1,4 @@
-﻿FROM node
+FROM node
 MAINTAINER Kevin Remde
 
 ENV PORT=80
@@ -18,4 +18,5 @@ COPY . /usr/src/app
 
 EXPOSE 80
 CMD [ "npm", "start" ]
-# CMD ["/usr/local/bin/node", "/var/www/app.js"] 
+
+
