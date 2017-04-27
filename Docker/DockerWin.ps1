@@ -1,5 +1,5 @@
 <#
-This file contains commands (run one at a time and either in the PowerShell 
+This file contains commands (run one at a time and either in the PowerShell
 ISE or a PowerShell prompt) that build the bot container.
 
 
@@ -14,7 +14,7 @@ docker build -t bot-image .
 docker images
 
 # Run it (not required)
-docker run -d -p 8080:80 --name bot-cntr bot-image 
+docker run -d -p 8080:80 --name bot-cntr bot-image
 
 # Check the containers
 docker ps -a
@@ -42,8 +42,8 @@ docker rmi bot-image
 docker rmi karcontainers-microsoft.azurecr.io/samples/bot-image
 docker images
 
-docker run -d -p 8080:80 --name bot-cntr bot-image 
-docker run -d -p 8080:80 --name bot-cntr karcontainers-microsoft.azurecr.io/samples/bot-image  
+docker run -d -p 8080:80 --name bot-cntr bot-image
+docker run -d -p 8080:80 --name bot-cntr karcontainers-microsoft.azurecr.io/samples/bot-image
 
 docker inspect -f "{{ .NetworkSettings.Networks.nat.IPAddress }}" my-site
 
@@ -72,3 +72,6 @@ docker rmi microsoft/nanoserver
 docker rmi karcontainers-microsoft.azurecr.io/samples/nanoserver
 docker images
 
+docker build -t bot-image .
+docker tag bot-image haosregistry.azurecr.io/instaply-first/bot-image
+docker push haosregistry.azurecr.io/instaply-first/bot-image

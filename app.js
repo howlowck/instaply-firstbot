@@ -22,7 +22,7 @@ var connector = new builder.ChatConnector({
 })
 var bot = new builder.UniversalBot(connector)
 server.get('/', function (req, res) {
-  res.json({'message': 'hello!!!' + process.env.TEST_ENV})
+  res.json({'message': 'hello from the bot framework. However you should probably hit this app with a client or connector'})
 })
 server.post('/api/messages', connector.listen())
 server.post('/bot-receiver', DirectlineClient)
