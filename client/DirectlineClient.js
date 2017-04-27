@@ -72,7 +72,7 @@ function startConnection ({url, threadId}) {
       if (activity.from.name) {
         conversationMapping.get(activity.conversation.id)
           .then((threadId) => {
-            // console.log('POST API: ThreadId = ', threadId, 'convoId: ', activity.conversation.id)
+            console.log('POST API: ThreadId = ', threadId, 'convoId: ', activity.conversation.id)
             const msg = activity.text
             postToApi(threadId, msg)
           })
