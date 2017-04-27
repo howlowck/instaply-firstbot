@@ -143,7 +143,11 @@ const client = (req, response) => {
 
   var conversationIdRequest = repository.get(threadId)
 
-  if (!fromCustomer) return
+  if (!fromCustomer) {
+    response.json({
+      message: 'ignored'
+    })
+  }
   if (conversationIdRequest.muteBot === true) { return }
 
   console.log('threadId from webhook:', threadId)
