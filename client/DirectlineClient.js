@@ -143,6 +143,9 @@ const client = (req, response) => {
 
   var conversationIdRequest = repository.get(threadId)
 
+  console.log('threadId from webhook:', threadId)
+  console.log('payload msg:', msg)
+
   if (!fromCustomer) return
   if (conversationIdRequest.muteBot === true) { return }
 
