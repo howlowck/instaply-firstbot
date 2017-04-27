@@ -167,8 +167,11 @@ const client = (req, response) => {
       // console.log('beforeSendingMessage')
       return sendMessageToBotConnector(threadId, msg)
     }).catch((err) => {
-      // console.log(err.message)
+      console.log(err.message)
     })
+  response.json({
+    message: 'OK'
+  })
 }
 
 module.exports = client
