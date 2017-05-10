@@ -147,6 +147,7 @@ const client = (req, response) => {
     response.json({
       message: 'ignored'
     })
+    return
   }
   if (conversationIdRequest.muteBot === true) { return }
 
